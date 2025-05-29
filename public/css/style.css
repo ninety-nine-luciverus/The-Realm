@@ -1,0 +1,45 @@
+/* Custom CSS for The Realm RPG */
+
+/* Basic body styling (already handled by Tailwind in HTML) */
+body {
+    font-family: 'Inter', sans-serif; /* Fallback for font-mono */
+}
+
+/* Ensure game output area has a scrollbar when content overflows */
+#game-output {
+    word-wrap: break-word; /* Prevents long words from overflowing */
+    white-space: pre-wrap; /* Preserves whitespace and wraps text */
+    overflow-y: auto; /* Enable vertical scrolling */
+    scrollbar-width: thin; /* Firefox */
+    scrollbar-color: #0d9488 #292524; /* Teal-600 thumb, Stone-800 track */
+}
+
+/* Webkit scrollbar for Chrome, Safari */
+#game-output::-webkit-scrollbar {
+    width: 8px;
+}
+
+#game-output::-webkit-scrollbar-track {
+    background: #292524; /* Stone-800 */
+    border-radius: 4px;
+}
+
+#game-output::-webkit-scrollbar-thumb {
+    background-color: #0d9488; /* Teal-600 */
+    border-radius: 4px;
+    border: 2px solid #292524; /* Stone-800 */
+}
+
+/* Input field focus style */
+#command-input:focus {
+    box-shadow: 0 0 0 3px rgba(45, 212, 191, 0.5); /* Teal-400 with opacity */
+}
+
+/* Button hover and focus styles */
+#submit-command:hover {
+    box-shadow: 0 4px 10px rgba(13, 148, 136, 0.4); /* Teal-600 shadow */
+}
+
+#submit-command:focus {
+    box-shadow: 0 0 0 3px rgba(45, 212, 191, 0.5); /* Teal-400 with opacity */
+}
