@@ -1,28 +1,28 @@
-// main.js - Logika utama game RPG berbasis teks Shan Hai Jing
+// main.js - Main logic for The Realm text-based RPG
 
-// --- Variabel Global Game State ---
+// --- Global Game State Variables ---
 let gameData = {
     player: {
         level: 1,
         exp: 0,
-        gender: '?', // Akan dipilih pemain
-        lastOnline: Date.now(), // Timestamp terakhir online
-        offlineExpRate: 0.1 // EXP per detik saat offline
+        gender: '?', // Player chooses gender
+        lastOnline: Date.now(), // Timestamp of last online activity
+        offlineExpRate: 0.1 // EXP per second while offline
     },
     currentLocation: 'starting_village',
     inventory: [],
     gameStarted: false,
-    // Data game statis akan dimuat dari file JSON
+    // Static game data will be loaded from JSON files
     locations: {},
     creatures: {},
     quests: {}
 };
 
-// --- Konfigurasi Gemini API ---
-const API_KEY = ""; // Biarkan kosong, Canvas akan menyediakannya saat runtime
+// --- Gemini API Configuration ---
+const API_KEY = ""; // Leave empty, Canvas will provide it at runtime
 const GEMINI_FLASH_MODEL = "gemini-2.0-flash";
 
-// --- Elemen DOM ---
+// --- DOM Elements ---
 const gameOutput = document.getElementById('game-output');
 const commandInput = document.getElementById('command-input');
 const submitButton = document.getElementById('submit-command');
@@ -30,30 +30,30 @@ const statLevel = document.getElementById('stat-level');
 const statExp = document.getElementById('stat-exp');
 const statGender = document.getElementById('stat-gender');
 
-// Tombol LLM
+// LLM feature buttons
 const suggestQuestButton = document.getElementById('suggest-quest-button');
 const talkNpcButton = document.getElementById('talk-npc-button');
 const imagineButton = document.getElementById('imagine-button');
 
-// --- Fungsi Utilitas ---
+// --- Utility Functions ---
 
-// Menambahkan teks ke output game
+// Adds text to the game output area
 function addOutput(text, colorClass = 'text-stone-100') {
     const p = document.createElement('p');
     p.classList.add(colorClass, 'mb-2');
     p.textContent = text;
     gameOutput.appendChild(p);
-    gameOutput.scrollTop = gameOutput.scrollHeight; // Gulir ke bawah
+    gameOutput.scrollTop = gameOutput.scrollHeight; // Scroll to bottom
 }
 
-// Memperbarui tampilan statistik pemain
+// Updates player stats display
 function updateStatsDisplay() {
     statLevel.textContent = gameData.player.level;
     statExp.textContent = gameData.player.exp.toFixed(0);
     statGender.textContent = gameData.player.gender;
 }
 
-// Memuat data game dari file JSON
+// Loads game data from JSON files
 async function loadGameData() {
     try {
         const [locationsRes, creaturesRes, questsRes] = await Promise.all([
@@ -66,72 +66,72 @@ async function loadGameData() {
         gameData.creatures = await creaturesRes.json();
         gameData.quests = await questsRes.json();
 
-        addOutput('Data game berhasil dimuat. Siap bertualang!', 'text-green-400');
-        // Setelah data dimuat, tampilkan deskripsi lokasi awal
+        addOutput('Game data loaded successfully. Ready for adventure!', 'text-green-400');
+        // After data is loaded, display the starting location description
         displayLocation();
     } catch (error) {
-        addOutput(`Gagal memuat data game: ${error.message}. Coba lagi nanti.`, 'text-red-400');
+        addOutput(`Failed to load game data: ${error.message}. Please try again later.`, 'text-red-400');
         console.error('Error loading game data:', error);
     }
 }
 
-// --- Mekanika Game ---
+// --- Game Mechanics ---
 
-// Menampilkan deskripsi lokasi saat ini
+// Displays the description of the current location
 function displayLocation() {
     const loc = gameData.locations[gameData.currentLocation];
     if (loc) {
-        addOutput(`Anda berada di: ${loc.name}`, 'text-orange-400');
+        addOutput(`You are in: ${loc.name}`, 'text-orange-400');
         addOutput(loc.description);
         if (loc.exits && Object.keys(loc.exits).length > 0) {
-            addOutput(`Jalan keluar: ${Object.keys(loc.exits).join(', ')}`);
+            addOutput(`Exits: ${Object.keys(loc.exits).join(', ')}`);
         }
         if (loc.items && loc.items.length > 0) {
-            addOutput(`Anda melihat: ${loc.items.join(', ')}`);
+            addOutput(`You see: ${loc.items.join(', ')}`);
         }
         if (loc.creatures && loc.creatures.length > 0) {
-            addOutput(`Anda melihat makhluk: ${loc.creatures.map(c => gameData.creatures[c]?.name || c).join(', ')}`);
+            addOutput(`You see creatures: ${loc.creatures.map(c => gameData.creatures[c]?.name || c).join(', ')}`);
         }
     } else {
-        addOutput('Anda tersesat di suatu tempat yang tidak dikenal.', 'text-red-400');
+        addOutput('You are lost in an unknown place.', 'text-red-400');
     }
 }
 
-// Menghitung dan menerapkan EXP luring
+// Calculates and applies offline EXP
 function calculateOfflineExp() {
     const now = Date.now();
     const timeElapsedSeconds = (now - gameData.player.lastOnline) / 1000;
     const gainedExp = timeElapsedSeconds * gameData.player.offlineExpRate;
 
     if (gainedExp > 0) {
-        const percentageOfMax = Math.min(100, (gainedExp / (gameData.player.offlineExpRate * 3600)) * 100).toFixed(0); // Contoh: 1 jam offline = 100%
+        const percentageOfMax = Math.min(100, (gainedExp / (gameData.player.offlineExpRate * 3600)) * 100).toFixed(0); // Example: 1 hour offline = 100%
         gameData.player.exp += gainedExp;
-        addOutput(`Saat Anda pergi, Anda mendapatkan ${gainedExp.toFixed(2)} EXP (${percentageOfMax}% dari potensi maksimal luring).`, 'text-yellow-400');
+        addOutput(`While you were away, you gained ${gainedExp.toFixed(2)} EXP (${percentageOfMax}% of max offline potential).`, 'text-yellow-400');
         checkLevelUp();
     }
-    gameData.player.lastOnline = now; // Perbarui timestamp
+    gameData.player.lastOnline = now; // Update timestamp
     updateStatsDisplay();
 }
 
-// Mengecek dan menaikkan level pemain
+// Checks and levels up the player
 function checkLevelUp() {
     const expNeededForNextLevel = 25 * gameData.player.level * (1 + gameData.player.level);
     if (gameData.player.exp >= expNeededForNextLevel) {
         gameData.player.level++;
-        addOutput(`Selamat! Anda naik ke Level ${gameData.player.level}!`, 'text-green-400');
-        // Pada Level 5, tawarkan pilihan pekerjaan
+        addOutput(`Congratulations! You leveled up to Level ${gameData.player.level}!`, 'text-green-400');
+        // At Level 5, offer job path choice
         if (gameData.player.level === 5) {
-            addOutput('Anda telah mencapai Level 5! Sekarang Anda dapat memilih jalur pekerjaan Anda. Ketik "pilih pekerjaan" untuk melihat opsi.', 'text-cyan-400');
+            addOutput('You have reached Level 5! You can now choose your job path. Type "choose job" to see options.', 'text-cyan-400');
         }
         updateStatsDisplay();
-        // Rekursif check jika EXP cukup untuk beberapa level sekaligus
+        // Recursively check if enough EXP for multiple levels at once
         checkLevelUp();
     }
 }
 
 // --- Gemini API Integration ---
 
-// Fungsi generik untuk memanggil Gemini API
+// Generic function to call Gemini API
 async function callGeminiAPI(prompt, model = GEMINI_FLASH_MODEL) {
     let chatHistory = [];
     chatHistory.push({ role: "user", parts: [{ text: prompt }] });
@@ -152,163 +152,163 @@ async function callGeminiAPI(prompt, model = GEMINI_FLASH_MODEL) {
             return result.candidates[0].content.parts[0].text;
         } else {
             console.error('Gemini API returned unexpected structure:', result);
-            return 'Maaf, saya tidak dapat menghasilkan respons. Struktur API tidak terduga.';
+            return 'Sorry, I could not generate a response. Unexpected API structure.';
         }
     } catch (error) {
         console.error('Error calling Gemini API:', error);
-        return `Maaf, terjadi kesalahan saat menghubungi dunia lain: ${error.message}`;
+        return `Sorry, an error occurred while contacting the otherworld: ${error.message}`;
     }
 }
 
-// Menangani perintah "Sarankan Misi"
+// Handles "Suggest Quest" command
 async function handleSuggestQuest() {
     if (!gameData.gameStarted) {
-        addOutput('Game belum dimulai. Ketik "mulai" untuk memulai.', 'text-red-400');
+        addOutput('Game has not started. Type "start" to begin.', 'text-red-400');
         return;
     }
 
-    addOutput('Memuat saran misi dari dunia lain... ✨', 'text-gray-500');
-    const prompt = `Sebagai Game Master untuk RPG berbasis teks yang terinspirasi dari Shan Hai Jing, sarankan ide misi singkat untuk pemain. Pemain saat ini berada di ${gameData.locations[gameData.currentLocation]?.name || 'lokasi yang tidak dikenal'}, level ${gameData.player.level}, dan memiliki item: ${gameData.inventory.length > 0 ? gameData.inventory.join(', ') : 'tidak ada'}. Fokus pada makhluk atau konsep dari Shan Hai Jing.`;
+    addOutput('Loading quest suggestion from the otherworld... ✨', 'text-gray-500');
+    const prompt = `As a Game Master for a text-based RPG inspired by Shan Hai Jing, suggest a brief quest idea for the player. The player is currently at ${gameData.locations[gameData.currentLocation]?.name || 'an unknown location'}, level ${gameData.player.level}, and has items: ${gameData.inventory.length > 0 ? gameData.inventory.join(', ') : 'none'}. Focus on creatures or concepts from Shan Hai Jing.`;
 
     const response = await callGeminiAPI(prompt);
-    addOutput(`\n✨ Saran Misi dari Penjaga Mitos:\n${response}`, 'text-purple-400');
+    addOutput(`\n✨ Quest Suggestion from the Myth Keeper:\n${response}`, 'text-purple-400');
 }
 
-// Menangani perintah "Bicara dengan NPC"
+// Handles "Talk to NPC" command
 async function handleTalkNpc() {
     if (!gameData.gameStarted) {
-        addOutput('Game belum dimulai. Ketik "mulai" untuk memulai.', 'text-red-400');
+        addOutput('Game has not started. Type "start" to begin.', 'text-red-400');
         return;
     }
 
-    // Untuk demo, asumsikan ada NPC di lokasi saat ini
-    const npcName = "Penjaga Desa Tua"; // Contoh NPC
-    addOutput(`Anda mendekati ${npcName}. Memuat respons... ✨`, 'text-gray-500');
+    // For demo, assume there's an NPC in the current location
+    const npcName = "Old Village Elder"; // Example NPC
+    addOutput(`You approach the ${npcName}. Loading response... ✨`, 'text-gray-500');
 
-    const prompt = `Sebagai ${npcName} di desa kuno yang terinspirasi dari Shan Hai Jing, sambut seorang petualang level ${gameData.player.level} yang berada di ${gameData.locations[gameData.currentLocation]?.name || 'lokasi yang tidak dikenal'}. Berikan salam singkat dan mungkin petunjuk samar tentang dunia atau misi.`;
+    const prompt = `As the ${npcName} in an ancient Shan Hai Jing-inspired village, greet an adventurer of level ${gameData.player.level} who is currently in ${gameData.locations[gameData.currentLocation]?.name || 'an unknown location'}. Provide a brief greeting and perhaps a vague hint about the world or a quest.`;
 
     const response = await callGeminiAPI(prompt);
-    addOutput(`\n✨ ${npcName} berkata:\n"${response}"`, 'text-indigo-400');
+    addOutput(`\n✨ ${npcName} says:\n"${response}"`, 'text-indigo-400');
 }
 
-// Menangani perintah "Bayangkan Deskripsi"
+// Handles "Imagine Description" command
 async function handleImagineCommand(target) {
     if (!gameData.gameStarted) {
-        addOutput('Game belum dimulai. Ketik "mulai" untuk memulai.', 'text-red-400');
+        addOutput('Game has not started. Type "start" to begin.', 'text-red-400');
         return;
     }
     if (!target) {
-        addOutput('Anda harus menentukan apa yang ingin Anda bayangkan. Contoh: "bayangkan naga" atau "bayangkan pedang kuno".', 'text-red-400');
+        addOutput('You must specify what you want to imagine a description for. Example: "imagine dragon" or "imagine ancient sword".', 'text-red-400');
         return;
     }
 
-    addOutput(`Membayangkan deskripsi untuk ${target}... ✨`, 'text-gray-500');
-    const prompt = `Bayangkan dan deskripsikan secara rinci sebuah ${target} dalam gaya naratif 'Classic of the Mountain and Seas' (Shan Hai Jing). Sertakan detail tentang penampilannya, aura, atau potensi kekuatan mitologisnya.`;
+    addOutput(`Imagining a description for ${target}... ✨`, 'text-gray-500');
+    const prompt = `Imagine and describe in detail a ${target} in the narrative style of 'Classic of the Mountain and Seas' (Shan Hai Jing). Include details about its appearance, aura, or potential mythological powers.`;
 
     const response = await callGeminiAPI(prompt);
-    addOutput(`\n✨ Deskripsi Imajinatif untuk ${target}:\n${response}`, 'text-pink-400');
+    addOutput(`\n✨ Imaginative Description for ${target}:\n${response}`, 'text-pink-400');
 }
 
 
-// --- Pengurai Perintah ---
+// --- Command Parser ---
 function parseCommand(command) {
     const parts = command.toLowerCase().trim().split(' ');
     const verb = parts[0];
     const noun = parts.slice(1).join(' ');
 
-    if (!gameData.gameStarted && verb !== 'mulai' && verb !== 'bantu') {
-        addOutput('Ketik "mulai" untuk memulai petualangan Anda.', 'text-red-400');
+    if (!gameData.gameStarted && verb !== 'start' && verb !== 'help') {
+        addOutput('Type "start" to begin your adventure.', 'text-red-400');
         return;
     }
 
     switch (verb) {
-        case 'mulai':
+        case 'start':
             if (!gameData.gameStarted) {
                 gameData.gameStarted = true;
-                addOutput('Petualangan Anda dimulai! Anda terbangun di sebuah desa kecil yang dikelilingi oleh hutan lebat. Udara terasa lembab dan Anda mendengar suara-suara aneh dari kejauhan.', 'text-green-400');
-                addOutput('Anda adalah seorang bayi yang baru lahir. Apa jenis kelamin Anda? (pria/wanita/tidak_teridentifikasi)', 'text-yellow-400');
+                addOutput('Your adventure begins! You awaken in a small village surrounded by dense forests. The air feels humid and you hear strange sounds from afar.', 'text-green-400');
+                addOutput('You are a newborn infant. What is your gender? (male/female/unidentified)', 'text-yellow-400');
             } else {
-                addOutput('Game sudah dimulai.', 'text-yellow-400');
+                addOutput('Game has already started.', 'text-yellow-400');
             }
             break;
-        case 'pria':
-        case 'wanita':
-        case 'tidak_teridentifikasi':
+        case 'male':
+        case 'female':
+        case 'unidentified':
             if (gameData.player.gender === '?' && gameData.gameStarted) {
                 gameData.player.gender = verb;
-                addOutput(`Anda memilih jenis kelamin: ${verb}. Perjalanan Anda akan dimulai!`, 'text-green-400');
+                addOutput(`You chose gender: ${verb}. Your journey will begin!`, 'text-green-400');
                 updateStatsDisplay();
                 displayLocation();
-                calculateOfflineExp(); // Hitung EXP luring setelah game dimulai
+                calculateOfflineExp(); // Calculate offline EXP after game starts
             } else {
-                addOutput('Jenis kelamin sudah dipilih atau game belum dimulai.', 'text-yellow-400');
+                addOutput('Gender already chosen or game not started.', 'text-yellow-400');
             }
             break;
-        case 'bantu':
-            addOutput('Perintah yang tersedia:');
-            addOutput('- mulai: Memulai permainan.');
-            addOutput('- pria/wanita/tidak_teridentifikasi: Pilih jenis kelamin Anda di awal game.');
-            addOutput('- pergi <arah>: Bergerak ke arah (utara, selatan, timur, barat).');
-            addOutput('- lihat: Melihat sekeliling Anda.');
-            addOutput('- ambil <item>: Mengambil item.');
-            addOutput('- inventaris: Melihat item di inventaris Anda.');
-            addOutput('- statistik: Melihat statistik karakter Anda.');
-            addOutput('- pilih pekerjaan: Memilih jalur pekerjaan Anda di Level 5.');
-            addOutput('- periksa <makhluk/item>: Memeriksa detail makhluk atau item.');
-            addOutput('- sarankan misi: Mendapatkan ide misi baru dari AI. ✨');
-            addOutput('- bicara <npc_nama>: Berbicara dengan NPC (saat ini hanya NPC umum). ✨');
-            addOutput('- bayangkan <target>: Mendapatkan deskripsi imajinatif dari AI. ✨');
+        case 'help':
+            addOutput('Available commands:');
+            addOutput('- start: Begin the game.');
+            addOutput('- male/female/unidentified: Choose your gender at the start of the game.');
+            addOutput('- go <direction>: Move in a direction (north, south, east, west).');
+            addOutput('- look: Look around your current location.');
+            addOutput('- take <item>: Pick up an item.');
+            addOutput('- inventory: View items in your inventory.');
+            addOutput('- stats: View your character statistics.');
+            addOutput('- choose job: Choose your job path at Level 5.');
+            addOutput('- examine <creature/item>: Examine details of a creature or item.');
+            addOutput('- suggest quest: Get a new quest idea from the AI. ✨');
+            addOutput('- talk <npc_name>: Talk to an NPC (currently a generic NPC). ✨');
+            addOutput('- imagine <target>: Get an imaginative description from the AI. ✨');
             break;
-        case 'pergi':
+        case 'go':
             handleGoCommand(noun);
             break;
-        case 'lihat':
+        case 'look':
             displayLocation();
             break;
-        case 'ambil':
+        case 'take':
             handleTakeCommand(noun);
             break;
-        case 'inventaris':
+        case 'inventory':
             if (gameData.inventory.length > 0) {
-                addOutput(`Inventaris Anda: ${gameData.inventory.join(', ')}`);
+                addOutput(`Your inventory: ${gameData.inventory.join(', ')}`);
             } else {
-                addOutput('Inventaris Anda kosong.');
+                addOutput('Your inventory is empty.');
             }
             break;
-        case 'statistik':
+        case 'stats':
             updateStatsDisplay();
             addOutput(`Level: ${gameData.player.level}, EXP: ${gameData.player.exp.toFixed(0)}, Gender: ${gameData.player.gender}`);
             break;
-        case 'pilih':
-            if (noun.startsWith('pekerjaan')) {
+        case 'choose':
+            if (noun.startsWith('job')) {
                 handleJobSelection();
             } else {
-                addOutput('Perintah tidak dikenal. Ketik "bantu" untuk daftar perintah.', 'text-red-400');
+                addOutput('Unknown command. Type "help" for a list of commands.', 'text-red-400');
             }
             break;
-        case 'periksa':
+        case 'examine':
             handleExamineCommand(noun);
             break;
-        case 'sarankan':
-            if (noun === 'misi') {
+        case 'suggest':
+            if (noun === 'quest') {
                 handleSuggestQuest();
             } else {
-                addOutput('Perintah tidak dikenal. Ketik "bantu" untuk daftar perintah.', 'text-red-400');
+                addOutput('Unknown command. Type "help" for a list of commands.', 'text-red-400');
             }
             break;
-        case 'bicara':
-            // Untuk demo, kita langsung panggil handleTalkNpc tanpa nama spesifik
+        case 'talk':
+            // For demo, we directly call handleTalkNpc without a specific name
             handleTalkNpc();
             break;
-        case 'bayangkan':
+        case 'imagine':
             handleImagineCommand(noun);
             break;
         default:
-            addOutput('Perintah tidak dikenal. Ketik "bantu" untuk daftar perintah.', 'text-red-400');
+            addOutput('Unknown command. Type "help" for a list of commands.', 'text-red-400');
             break;
     }
-    // Tambahkan EXP kecil untuk setiap perintah yang berhasil (simulasi aktivitas)
-    if (gameData.gameStarted && verb !== 'bantu') {
+    // Add a small amount of EXP for each successful command (simulating activity)
+    if (gameData.gameStarted && verb !== 'help') {
         gameData.player.exp += 1;
         checkLevelUp();
     }
@@ -318,10 +318,10 @@ function handleGoCommand(direction) {
     const currentLoc = gameData.locations[gameData.currentLocation];
     if (currentLoc && currentLoc.exits && currentLoc.exits[direction]) {
         gameData.currentLocation = currentLoc.exits[direction];
-        addOutput(`Anda berjalan ke ${direction}.`, 'text-green-400');
+        addOutput(`You walk ${direction}.`, 'text-green-400');
         displayLocation();
     } else {
-        addOutput(`Anda tidak bisa pergi ke ${direction} dari sini.`, 'text-red-400');
+        addOutput(`You cannot go ${direction} from here.`, 'text-red-400');
     }
 }
 
@@ -331,44 +331,44 @@ function handleTakeCommand(item) {
         const itemIndex = currentLoc.items.indexOf(item);
         if (itemIndex > -1) {
             gameData.inventory.push(item);
-            currentLoc.items.splice(itemIndex, 1); // Hapus item dari lokasi
-            addOutput(`Anda mengambil ${item}.`, 'text-green-400');
-            addOutput(`Inventaris Anda sekarang: ${gameData.inventory.join(', ')}`);
+            currentLoc.items.splice(itemIndex, 1); // Remove item from location
+            addOutput(`You picked up the ${item}.`, 'text-green-400');
+            addOutput(`Your inventory now contains: ${gameData.inventory.join(', ')}`);
         } else {
-            addOutput(`Tidak ada ${item} di sini.`, 'text-red-400');
+            addOutput(`There is no ${item} here.`, 'text-red-400');
         }
     } else {
-        addOutput(`Tidak ada ${item} di sini.`, 'text-red-400');
+        addOutput(`There is no ${item} here.`, 'text-red-400');
     }
 }
 
 function handleJobSelection() {
     if (gameData.player.level < 5) {
-        addOutput('Anda harus mencapai Level 5 terlebih dahulu untuk memilih pekerjaan.', 'text-yellow-400');
+        addOutput('You must reach Level 5 first to choose a job.', 'text-yellow-400');
         return;
     }
     if (gameData.player.job) {
-        addOutput(`Anda sudah menjadi ${gameData.player.job}.`, 'text-yellow-400');
+        addOutput(`You are already a ${gameData.player.job}.`, 'text-yellow-400');
         return;
     }
 
-    addOutput('Pilih pekerjaan Anda: Shaman, Prajurit, Cendekiawan, Penjelajah. (Ketik "pilih pekerjaan <nama_pekerjaan>")', 'text-cyan-400');
-    // Ini hanya contoh, logika sebenarnya akan lebih kompleks dan mungkin melibatkan server
+    addOutput('Choose your job: Shaman, Warrior, Scholar, Explorer. (Type "choose job <job_name>")', 'text-cyan-400');
+    // This is just an example, actual logic would be more complex and likely involve the server
     commandInput.onkeydown = (e) => {
         if (e.key === 'Enter') {
             const cmd = commandInput.value.toLowerCase().trim();
-            if (cmd.startsWith('pilih pekerjaan ')) {
-                const chosenJob = cmd.substring('pilih pekerjaan '.length);
-                const validJobs = ['shaman', 'prajurit', 'cendekiawan', 'penjelajah'];
+            if (cmd.startsWith('choose job ')) {
+                const chosenJob = cmd.substring('choose job '.length);
+                const validJobs = ['shaman', 'warrior', 'scholar', 'explorer'];
                 if (validJobs.includes(chosenJob)) {
                     gameData.player.job = chosenJob;
-                    addOutput(`Anda sekarang adalah seorang ${chosenJob}! Perjalanan Anda akan berubah.`, 'text-green-400');
-                    commandInput.onkeydown = handleCommandInput; // Kembalikan event listener normal
+                    addOutput(`You are now a ${chosenJob}! Your journey will change.`, 'text-green-400');
+                    commandInput.onkeydown = handleCommandInput; // Restore normal event listener
                 } else {
-                    addOutput('Pekerjaan tidak valid. Pilih dari Shaman, Prajurit, Cendekiawan, Penjelajah.', 'text-red-400');
+                    addOutput('Invalid job. Choose from Shaman, Warrior, Scholar, Explorer.', 'text-red-400');
                 }
             } else {
-                addOutput('Perintah tidak valid untuk pemilihan pekerjaan.', 'text-red-400');
+                addOutput('Invalid command for job selection.', 'text-red-400');
             }
             commandInput.value = '';
         }
@@ -377,27 +377,27 @@ function handleJobSelection() {
 
 function handleExamineCommand(target) {
     const currentLoc = gameData.locations[gameData.currentLocation];
-    // Periksa makhluk di lokasi
+    // Check creatures in location
     const creature = Object.values(gameData.creatures).find(c => c.name.toLowerCase() === target);
     if (creature && currentLoc.creatures.includes(creature.id)) {
         addOutput(`--- ${creature.name} ---`, 'text-purple-400');
-        addOutput(`Deskripsi: ${creature.description}`);
-        addOutput(`Makna: ${creature.symbolicMeaning}`);
-        addOutput(`Kemampuan: ${creature.abilities}`);
+        addOutput(`Description: ${creature.description}`);
+        addOutput(`Meaning: ${creature.symbolicMeaning}`);
+        addOutput(`Abilities: ${creature.abilities}`);
         return;
     }
 
-    // Periksa item di lokasi atau inventaris
+    // Check items in location or inventory
     const itemInLoc = currentLoc.items && currentLoc.items.includes(target);
     const itemInInv = gameData.inventory.includes(target);
     if (itemInLoc || itemInInv) {
-        // Contoh deskripsi item sederhana, bisa diperluas
+        // Example simple item description, can be expanded
         addOutput(`--- ${target.charAt(0).toUpperCase() + target.slice(1)} ---`, 'text-purple-400');
-        addOutput(`Ini adalah ${target}. Tampaknya berguna.`);
+        addOutput(`This is a ${target}. It seems useful.`);
         return;
     }
 
-    addOutput(`Tidak dapat menemukan atau memeriksa ${target}.`, 'text-red-400');
+    addOutput(`Cannot find or examine ${target}.`, 'text-red-400');
 }
 
 
@@ -406,7 +406,7 @@ function handleCommandInput(event) {
     if (event.key === 'Enter') {
         const command = commandInput.value.trim();
         if (command) {
-            addOutput(`> ${command}`, 'text-blue-400'); // Tampilkan perintah pengguna
+            addOutput(`> ${command}`, 'text-blue-400'); // Display user command
             parseCommand(command);
             commandInput.value = '';
         }
@@ -416,7 +416,7 @@ function handleCommandInput(event) {
 submitButton.addEventListener('click', () => {
     const command = commandInput.value.trim();
     if (command) {
-        addOutput(`> ${command}`, 'text-blue-400'); // Tampilkan perintah pengguna
+        addOutput(`> ${command}`, 'text-blue-400'); // Display user command
         parseCommand(command);
         commandInput.value = '';
     }
@@ -428,26 +428,26 @@ commandInput.addEventListener('keydown', handleCommandInput);
 suggestQuestButton.addEventListener('click', handleSuggestQuest);
 talkNpcButton.addEventListener('click', handleTalkNpc);
 imagineButton.addEventListener('click', () => {
-    const target = prompt("Apa yang ingin Anda bayangkan deskripsinya? (misal: naga, pedang kuno, kota tersembunyi)");
+    const target = prompt("What do you want to imagine a description for? (e.g., dragon, ancient sword, hidden city)");
     if (target) {
         handleImagineCommand(target);
     }
 });
 
 
-// --- Inisialisasi Game ---
+// --- Game Initialization ---
 document.addEventListener('DOMContentLoaded', () => {
-    addOutput('Memuat data game...', 'text-yellow-400');
+    addOutput('Loading game data...', 'text-yellow-400');
     loadGameData();
     updateStatsDisplay();
-    // Jika game sudah dimulai sebelumnya (misal dari localStorage), hitung EXP luring
-    // Ini akan menjadi bagian dari integrasi backend yang sebenarnya
-    // calculateOfflineExp(); // Akan dipanggil setelah pemain memilih gender
+    // If the game was previously started (e.g., from localStorage), calculate offline EXP
+    // This would be part of the actual backend integration
+    // calculateOfflineExp(); // Will be called after player chooses gender
 });
 
-// Simpan status game (simulasi, sebenarnya akan ke backend)
+// Save game state (simulation, would actually go to backend)
 window.addEventListener('beforeunload', () => {
     gameData.player.lastOnline = Date.now();
-    // Di sini Anda akan mengirim gameData.player.lastOnline ke server
-    // Untuk tujuan demo, tidak ada penyimpanan persisten di frontend
+    // Here you would send gameData.player.lastOnline to the server
+    // For demo purposes, no persistent storage on frontend
 });
