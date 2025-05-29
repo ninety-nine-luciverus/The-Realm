@@ -1,17 +1,10 @@
-/* Custom CSS for The Realm RPG */
-
-/* Basic body styling (already handled by Tailwind in HTML) */
-body {
-    font-family: 'Inter', sans-serif; /* Fallback for font-mono */
-}
-
-/* Ensure game output area has a scrollbar when content overflows */
+/* Custom scrollbar for game-output */
 #game-output {
-    word-wrap: break-word; /* Prevents long words from overflowing */
-    white-space: pre-wrap; /* Preserves whitespace and wraps text */
-    overflow-y: auto; /* Enable vertical scrolling */
+    word-wrap: break-word;
+    white-space: pre-wrap;
+    overflow-y: auto;
     scrollbar-width: thin; /* Firefox */
-    scrollbar-color: #0d9488 #292524; /* Teal-600 thumb, Stone-800 track */
+    scrollbar-color: #65a30d #18181b; /* Lime-600 thumb, Zinc-900 track */
 }
 
 /* Webkit scrollbar for Chrome, Safari */
@@ -20,26 +13,79 @@ body {
 }
 
 #game-output::-webkit-scrollbar-track {
-    background: #292524; /* Stone-800 */
-    border-radius: 4px;
+    background: #18181b; /* Zinc-900 */
+    border-radius: 0px; /* No rounded corners for scrollbar track */
 }
 
 #game-output::-webkit-scrollbar-thumb {
-    background-color: #0d9488; /* Teal-600 */
-    border-radius: 4px;
-    border: 2px solid #292524; /* Stone-800 */
+    background-color: #65a30d; /* Lime-600 */
+    border-radius: 0px; /* No rounded corners for scrollbar thumb */
+    border: 2px solid #18181b; /* Zinc-900 */
 }
 
-/* Input field focus style */
-#command-input:focus {
-    box-shadow: 0 0 0 3px rgba(45, 212, 191, 0.5); /* Teal-400 with opacity */
+/* Base styles for command buttons to apply consistent hover/focus */
+.command-button {
+    /* These styles are mostly duplicated from Tailwind classes in HTML,
+       but kept here for clarity if you need custom effects later. */
 }
 
-/* Button hover and focus styles */
-#submit-command:hover {
-    box-shadow: 0 4px 10px rgba(13, 148, 136, 0.4); /* Teal-600 shadow */
+/* CRT Effect (Optional, you can remove this if you don't like it) */
+.crt-effect {
+    position: relative;
+    overflow: hidden; /* Hide anything outside the screen boundary */
 }
 
-#submit-command:focus {
-    box-shadow: 0 0 0 3px rgba(45, 212, 191, 0.5); /* Teal-400 with opacity */
+/* Subtle flicker effect for text */
+.crt-effect p, .crt-effect span, .crt-effect input, .crt-effect button {
+    text-shadow: 0 0 1px rgba(0, 0, 0, 0.25); /* Subtle shadow for depth */
+    animation: flicker 0.15s infinite alternate; /* Very fast flicker */
+}
+
+@keyframes flicker {
+    0% { opacity: 1; }
+    100% { opacity: 0.98; } /* Slight change in opacity for flicker */
+}
+
+/* Scanline effect (can be quite strong, adjust opacity if needed) */
+.crt-effect::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: repeating-linear-gradient(
+        #18181b 0%,
+        #18181b 1px,
+        transparent 1px,
+        transparent 2px
+    ); /* Thin horizontal lines */
+    opacity: 0.1; /* Adjust for desired visibility */
+    pointer-events: none; /* Allow interaction with elements behind it */
+    animation: scanlines 5s linear infinite; /* Slowly move scanlines */
+}
+
+@keyframes scanlines {
+    to {
+        background-position: 0 500%;
+    }
+}
+
+/* Optional: Slight screen curve and glow (more advanced, can be added with ::after) */
+.crt-effect::after {
+    content: '';
+    display: block;
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: radial-gradient(
+        ellipse at center,
+        rgba(101, 163, 13, 0) 0%, /* Transparent lime color */
+        rgba(101, 163, 13, 0.05) 50%, /* Slight lime glow */
+        rgba(101, 163, 13, 0.1) 100% /* More lime glow at edges */
+    );
+    pointer-events: none;
+    mix-blend-mode: overlay; /* Blends nicely with existing colors */
 }
