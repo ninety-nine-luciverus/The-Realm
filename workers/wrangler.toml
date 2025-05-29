@@ -8,15 +8,15 @@ compatibility_date = "2024-05-29" # Latest compatibility date
 [[d1_databases]]
 binding = "DB" # This is the variable name that will be accessed in your Worker (env.DB)
 database_name = "the-realm-db" # Your D1 database name
-database_id = "YOUR_D1_DATABASE_ID" # Your unique D1 database ID
+database_id = "dcd35465-29cc-459a-b1b4-0a9f9e228c1e" # Your unique D1 database ID
 
 # Binding for Cloudflare KV (Key-Value Store)
 # Replace 'YOUR_KV_BINDING_NAME' with your desired binding name
 # Replace 'YOUR_KV_NAMESPACE_ID' with your KV namespace ID
 [[kv_namespaces]]
 binding = "KV_DATA" # This is the variable name that will be accessed in your Worker (env.KV_DATA)
-id = "YOUR_KV_NAMESPACE_ID" # Your unique KV namespace ID
-preview_id = "YOUR_KV_NAMESPACE_ID_PREVIEW" # Optional: Separate KV namespace ID for preview
+id = "b3365e4f72e14a46abf5b81458d1d25d" # Your unique KV namespace ID
+preview_id = "0e59eaa094e44936b7ec6a20dcf6e8fe" # Optional: Separate KV namespace ID for preview
 
 # Environment variables (optional)
 # [vars]
