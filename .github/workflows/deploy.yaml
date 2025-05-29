@@ -1,0 +1,60 @@
+name: Deploy to Cloudflare Pages
+
+on:
+  push:
+    branches:
+      - main # Replace with your main branch name (e.g.: master, main)
+  pull_request:
+    branches:
+      - main # Replace with your main branch name
+    types: [opened, synchronize, reopened, ready_for_review] # Run PR checks
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    # Condition to run the job:
+    # Only run for pushes to the main branch OR pull requests that are ready for review.
+    # Avoid running twice for the same PR if the main branch already has changes.
+    if: |
+      github.event_name == 'push' && github.ref == 'refs/heads/main' ||
+      github.event_name == 'pull_request' && github.event.pull_request.state == 'open' && github.event.pull_request.draft == false
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js (Optional, only if your frontend needs build tools like npm/yarn)
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20' # Use a recommended Node.js version
+
+      - name: Install dependencies (Optional)
+        if: ${{ github.event_name == 'push' || github.event.pull_request.draft == false }} # Only install if not a draft PR
+        run: npm install # Or yarn install if you use yarn
+        working-directory: ./public # Adjust if your package.json is in root or another directory
+
+      - name: Build project (Optional)
+        if: ${{ github.event_name == 'push' || github.event.pull_request.draft == false }} # Only build if not a draft PR
+        run: npm run build # Or yarn build if you have a build script in public/package.json
+        working-directory: ./public
+
+      - name: Deploy to Cloudflare Pages
+        uses: cloudflare/pages-action@v1 # Use the official Cloudflare Pages action
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          projectName: the-realm-game # Replace with your Pages project name in Cloudflare
+          directory: ./public                 # The directory containing your frontend static files
+          # If you have a build command, specify it here.
+          # If you only have static HTML/CSS/JS, leave empty or set 'npm run build'.
+          # Cloudflare Pages will try to detect the framework.
+          # command: npm run build
+          # buildOutputDirectory: dist # Adjust if your build outputs to another directory
+
+          # Optional: Configuration for pull requests
+          # If it's a pull request, Cloudflare Pages will create a preview deployment.
+          # default_branch: main # Define your default branch
+          # branch_name: ${{ github.head_ref }} # PR branch name for preview
+          # commit_hash: ${{ github.sha }} # Commit hash for preview
+
