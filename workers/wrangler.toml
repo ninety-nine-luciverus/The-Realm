@@ -1,0 +1,29 @@
+name = "shan-hai-jing-rpg-worker" # Nama unik untuk Worker Anda
+main = "src/index.js"             # Jalur ke berkas JavaScript utama Worker
+compatibility_date = "2024-05-29" # Tanggal kompatibilitas terbaru
+
+# Binding untuk Cloudflare D1 (Database SQL)
+# Ganti 'YOUR_D1_BINDING_NAME' dengan nama binding yang Anda inginkan
+# Ganti 'YOUR_D1_DATABASE_ID' dengan ID database D1 Anda
+[[d1_databases]]
+binding = "DB" # Ini adalah nama variabel yang akan diakses di Worker Anda (env.DB)
+database_name = "shan-hai-jing-db" # Nama database D1 Anda
+database_id = "YOUR_D1_DATABASE_ID" # ID unik database D1 Anda
+
+# Binding untuk Cloudflare KV (Key-Value Store)
+# Ganti 'YOUR_KV_BINDING_NAME' dengan nama binding yang Anda inginkan
+# Ganti 'YOUR_KV_NAMESPACE_ID' dengan ID namespace KV Anda
+[[kv_namespaces]]
+binding = "KV_DATA" # Ini adalah nama variabel yang akan diakses di Worker Anda (env.KV_DATA)
+id = "YOUR_KV_NAMESPACE_ID" # ID unik namespace KV Anda
+preview_id = "YOUR_KV_NAMESPACE_ID_PREVIEW" # Opsional: ID namespace KV terpisah untuk pratinjau
+
+# Variabel lingkungan (opsional)
+# [vars]
+# MY_SECRET_KEY = "ini_kunci_rahasia_anda" # Jangan menyimpan rahasia di sini secara langsung, gunakan Secrets
+
+# Pengaturan untuk pengembangan lokal
+# [dev]
+# ip = "127.0.0.1"
+# port = 8787
+# local_protocol = "http"
