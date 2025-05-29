@@ -1,0 +1,37 @@
+{
+  "qilin": {
+    "id": "qilin",
+    "name": "Qilin",
+    "description": "A chimera-like hoofed creature, dragon-headed, with shimmering fur.",
+    "symbolicMeaning": "Benevolence, prosperity, good omen. Its appearance signifies times of peace or the arrival of a wise leader.",
+    "abilities": "Spiritual guidance, warding off evil, bestowing temporary blessings upon those pure of heart."
+  },
+  "nine_tailed_fox": {
+    "id": "nine_tailed_fox",
+    "name": "Nine-Tailed Fox",
+    "description": "A cunning fox with golden fur and nine enchanting tails. Capable of shapeshifting.",
+    "symbolicMeaning": "Intelligence, charm, trickery, and sometimes a symbol of fortune or ruin depending on its intentions.",
+    "abilities": "Shapeshifting, creating illusions, mind control, offering ambiguous choices that test the player's morality."
+  },
+  "dragon": {
+    "id": "dragon",
+    "name": "Dragon",
+    "description": "A colossal scaled creature whose roar echoes through the mountains and controls the elements.",
+    "symbolicMeaning": "Power, wisdom, good fortune, and authority. Often associated with water and weather.",
+    "abilities": "Destructive elemental power (fire/water), ancient knowledge, weather manipulation, immense physical and mental challenges."
+  },
+  "taotie": {
+    "id": "taotie",
+    "name": "Taotie",
+    "description": "A ravenous creature with a human face, tiger teeth, human hands, and the voice of a Taotie. Known for its insatiable appetite.",
+    "symbolicMeaning": "Greed, gluttony, and uncontrolled appetite. Often used as a cautionary motif.",
+    "abilities": "Consumes player resources (inventory, stamina), requires strategic resource management to defeat, can weaken foes by draining their energy."
+  },
+  "xiezhi": {
+    "id": "xiezhi",
+    "name": "Xiezhi",
+    "description": "A goat-like creature with black fur and a single horn on its forehead. Known for its ability to discern truth from falsehood.",
+    "symbolicMeaning": "Truth, justice, and impartiality. Often depicted as a guardian of law and fairness.",
+    "abilities": "Detects lies, reveals hidden motives, forces players to confront consequences, provides insights into difficult truths."
+  }
+}
