@@ -1,28 +1,28 @@
-name = "shan-hai-jing-rpg-worker" # Nama unik untuk Worker Anda
-main = "src/index.js"             # Jalur ke berkas JavaScript utama Worker
-compatibility_date = "2024-05-29" # Tanggal kompatibilitas terbaru
+name = "the-realm-worker" # Unique name for your Worker
+main = "src/index.js"             # Path to the Worker's main JavaScript file
+compatibility_date = "2024-05-29" # Latest compatibility date
 
-# Binding untuk Cloudflare D1 (Database SQL)
-# Ganti 'YOUR_D1_BINDING_NAME' dengan nama binding yang Anda inginkan
-# Ganti 'YOUR_D1_DATABASE_ID' dengan ID database D1 Anda
+# Binding for Cloudflare D1 (SQL Database)
+# Replace 'YOUR_D1_BINDING_NAME' with your desired binding name
+# Replace 'YOUR_D1_DATABASE_ID' with your D1 database ID
 [[d1_databases]]
-binding = "DB" # Ini adalah nama variabel yang akan diakses di Worker Anda (env.DB)
-database_name = "shan-hai-jing-db" # Nama database D1 Anda
-database_id = "YOUR_D1_DATABASE_ID" # ID unik database D1 Anda
+binding = "DB" # This is the variable name that will be accessed in your Worker (env.DB)
+database_name = "the-realm-db" # Your D1 database name
+database_id = "YOUR_D1_DATABASE_ID" # Your unique D1 database ID
 
-# Binding untuk Cloudflare KV (Key-Value Store)
-# Ganti 'YOUR_KV_BINDING_NAME' dengan nama binding yang Anda inginkan
-# Ganti 'YOUR_KV_NAMESPACE_ID' dengan ID namespace KV Anda
+# Binding for Cloudflare KV (Key-Value Store)
+# Replace 'YOUR_KV_BINDING_NAME' with your desired binding name
+# Replace 'YOUR_KV_NAMESPACE_ID' with your KV namespace ID
 [[kv_namespaces]]
-binding = "KV_DATA" # Ini adalah nama variabel yang akan diakses di Worker Anda (env.KV_DATA)
-id = "YOUR_KV_NAMESPACE_ID" # ID unik namespace KV Anda
-preview_id = "YOUR_KV_NAMESPACE_ID_PREVIEW" # Opsional: ID namespace KV terpisah untuk pratinjau
+binding = "KV_DATA" # This is the variable name that will be accessed in your Worker (env.KV_DATA)
+id = "YOUR_KV_NAMESPACE_ID" # Your unique KV namespace ID
+preview_id = "YOUR_KV_NAMESPACE_ID_PREVIEW" # Optional: Separate KV namespace ID for preview
 
-# Variabel lingkungan (opsional)
+# Environment variables (optional)
 # [vars]
-# MY_SECRET_KEY = "ini_kunci_rahasia_anda" # Jangan menyimpan rahasia di sini secara langsung, gunakan Secrets
+# MY_SECRET_KEY = "your_secret_key" # Do not store secrets here directly, use Secrets
 
-# Pengaturan untuk pengembangan lokal
+# Settings for local development
 # [dev]
 # ip = "127.0.0.1"
 # port = 8787
